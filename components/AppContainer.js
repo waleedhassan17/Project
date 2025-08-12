@@ -1,20 +1,16 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen/homeScreen';
+import { BaseRouteNames } from "../navigations-map/Base";
+import BaseNavigator from "../navigators/BaseNavigator";
 
-const Stack = createNativeStackNavigator();
-
+/**
+ * Main App Container Component
+ * @returns {React.ReactElement}
+ */
 const AppContainer = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen 
-          name="Home" 
-          component={HomeScreen} 
-          options={{ title: 'Home' }} 
-        />
-      </Stack.Navigator>
+      <BaseNavigator initialRouteName={BaseRouteNames.Home} />
     </NavigationContainer>
   );
 };
