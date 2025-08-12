@@ -1,9 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useAppSelector, useAppDispatch } from '../../hooks/useReduxHooks'; 
+import { selectMessage, setMessage } from './homeScreenSlice';
 
 export default function HomeScreen() {
-  const message = useSelector((state) => state.hello.message);
+  const dispatch = useAppDispatch();
+  const message = useAppSelector(selectMessage);
+
 
   return (
     <View style={styles.container}>
