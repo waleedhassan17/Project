@@ -14,5 +14,8 @@ const helloSlice = createSlice({
   },
 });
 
+
+export const selectMessage = (state) => state.hello.message;
+
 export const { setMessage } = helloSlice.actions;
 export default helloSlice.reducer;
