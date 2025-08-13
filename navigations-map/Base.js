@@ -5,7 +5,7 @@ export const BaseRouteNames = {
 };
 
 /**
- * @type {import("@/app/types/routes").IRoutes}
+ * @type {import("../types/routes").IRoutes}
  */
 export const BaseRoutes = [
   {
