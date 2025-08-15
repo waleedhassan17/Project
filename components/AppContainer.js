@@ -10,7 +10,7 @@ import BaseNavigator from "../navigators/BaseNavigator";
 const AppContainer = () => {
   return (
     <NavigationContainer>
-      <BaseNavigator initialRouteName={BaseRouteNames.Home} />
+      <BaseNavigator initialRouteName={BaseRouteNames.SignIn} />
     </NavigationContainer>
   );
 };
