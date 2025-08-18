@@ -22,9 +22,9 @@ import {
   signInWithEmail,
   clearError,
 } from './authSlice';
-import CustomInput from '../../Custom-Components/CustomInput';
-import CustomButton from '../../Custom-Components/CustomButton';
-import AppLogo from '../../Custom-Components/AppLogo';
+import CustomInput from '../../components/CustomInput';
+import CustomButton from '../../components/CustomButton';
+import AppLogo from '../../components/AppLogo';
 
 const ShezlongLogin = () => {
   const navigation = useNavigation();
@@ -40,7 +40,7 @@ const ShezlongLogin = () => {
     { value: 'therapist', label: 'Therapist', icon: 'medical' }
   ];
 
-  // Clear error when component mounts or when form values change
+
   useEffect(() => {
     if (error) {
       dispatch(clearError());
@@ -48,7 +48,7 @@ const ShezlongLogin = () => {
   }, [email, password, selectedUserType]);
 
   const validateForm = () => {
-    // Check if user type is selected
+ 
     if (!selectedUserType) {
       Alert.alert('Error', 'Please select whether you are a Visitor or Therapist');
       return false;
@@ -59,7 +59,7 @@ const ShezlongLogin = () => {
       return false;
     }
     
-    // Basic email validation
+  
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       Alert.alert('Error', 'Please enter a valid email address');
@@ -71,7 +71,6 @@ const ShezlongLogin = () => {
       return false;
     }
 
-    // Optional: Add minimum password length validation
     if (password.trim().length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters long');
       return false;
@@ -83,7 +82,6 @@ const ShezlongLogin = () => {
   const handleSignIn = async () => {
     console.log('Login attempt started');
     
-    // Clear any previous errors
     if (error) {
       dispatch(clearError());
     }
@@ -98,33 +96,28 @@ const ShezlongLogin = () => {
         userType: selectedUserType 
       });
       
-      // Dispatch the Firebase sign-in thunk with user type
       const result = await dispatch(signInWithEmail({ 
         email: email.trim(), 
         password,
-        userType: selectedUserType // Include user type in the sign-in data
+        userType: selectedUserType 
       })).unwrap();
       
       console.log('Login successful:', result);
       
-      // On success, navigate to home
+    
       try {
         navigation.navigate('Home');
       } catch (navigationError) {
         console.error('Navigation error:', navigationError);
-        // Fallback navigation
         navigation.replace('Home');
       }
     } catch (err) {
       console.error('Login failed:', err);
-      // Error is automatically handled by the thunk and stored in state
-      // Show error alert
       Alert.alert('Login Failed', err || 'Please check your credentials and try again.');
     }
   };
 
   const handleForgotPassword = () => {
-    // Navigate to forgot password screen or show alert
     Alert.alert(
       'Forgot Password',
       'Please contact support or use the password reset feature.',
@@ -134,7 +127,6 @@ const ShezlongLogin = () => {
 
   const handleEmailChange = (text) => {
     dispatch(setLoginEmail(text));
-    // Clear error when user starts typing
     if (error) {
       dispatch(clearError());
     }
@@ -142,7 +134,6 @@ const ShezlongLogin = () => {
 
   const handlePasswordChange = (text) => {
     dispatch(setLoginPassword(text));
-    // Clear error when user starts typing
     if (error) {
       dispatch(clearError());
     }
@@ -150,13 +141,11 @@ const ShezlongLogin = () => {
 
   const handleUserTypeChange = (userType) => {
     dispatch(setSelectedUserType(userType));
-    // Clear error when user selects a user type
     if (error) {
       dispatch(clearError());
     }
   };
 
-  // Helper function to check if form is complete
   const isFormComplete = () => {
     return selectedUserType && email.trim() && password.trim();
   };

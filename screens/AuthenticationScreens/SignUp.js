@@ -24,8 +24,8 @@ import {
   signUpWithEmail,
   clearError,
 } from './authSlice';
-import CustomInput from '../../Custom-Components/CustomInput';
-import AppLogo from '../../Custom-Components/AppLogo'; 
+import CustomInput from '../../components/CustomInput';
+import AppLogo from '../../components/AppLogo'; 
 
 const ShezlongSignUp = () => {
   const navigation = useNavigation();

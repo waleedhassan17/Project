@@ -1,4 +1,3 @@
-// auth/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import {
   registerUser,
@@ -17,13 +16,8 @@ import {
   conformsToSchema,
 } from '../../serilizers/authSerilizer';
 
-// Initial state using serializer - guaranteed to match AUTH_STATE_SCHEMA
 const initialState = createInitialAuthState();
 
-/**
- * Async thunk for user registration
- * Serializer ensures only schema-defined fields are sent to network layer
- */
 export const signUpWithEmail = createAsyncThunk(
   'auth/signUpWithEmail',
   async (payload, { getState, rejectWithValue }) => {
@@ -32,27 +26,23 @@ export const signUpWithEmail = createAsyncThunk(
       
       const { selectedUserType } = getState().auth;
       
-      // Validate form data against SIGNUP_FORM_SCHEMA first
       const validation = validateFormData(payload, 'signup');
       if (!validation.isValid) {
         console.error('Form validation failed:', validation.errors);
         return rejectWithValue(validation.errors.join(', '));
       }
       
-      // Serialize form data into clean payload (filters against SIGNUP_PAYLOAD_SCHEMA)
       const cleanPayload = serializeSignUpPayload({
         ...payload,
         userType: selectedUserType,
       });
-      console.log('Sending clean payload to network:', Object.keys(cleanPayload));
+      console.log('Sending clean payload to API:', Object.keys(cleanPayload));
 
-      // Call network function with schema-compliant data
-      const { user: firebaseUser, profile } = await registerUser(cleanPayload);
+      const { user: apiUser, profile } = await registerUser(cleanPayload);
 
-      // Serialize the response (filters against USER_SCHEMA)
-      const serializedUser = serializeUser(firebaseUser, profile);
+      const serializedUser = serializeUser(apiUser, profile);
       if (!serializedUser) {
-        throw new Error('Invalid user data received from network');
+        throw new Error('Invalid user data received from API');
       }
       
       console.log('signUpWithEmail completed successfully');
@@ -64,10 +54,6 @@ export const signUpWithEmail = createAsyncThunk(
   }
 );
 
-/**
- * Async thunk for user sign in
- * Serializer ensures only schema-defined fields are sent to network layer
- */
 export const signInWithEmail = createAsyncThunk(
   'auth/signInWithEmail',
   async (payload, { getState, rejectWithValue }) => {
@@ -76,41 +62,34 @@ export const signInWithEmail = createAsyncThunk(
       
       const { selectedUserType } = getState().auth;
       
-      // Validate form data against LOGIN_FORM_SCHEMA first
       const validation = validateFormData(payload, 'login');
       if (!validation.isValid) {
         console.error('Form validation failed:', validation.errors);
         return rejectWithValue(validation.errors.join(', '));
       }
       
-      // Serialize form data into clean payload (filters against SIGNIN_PAYLOAD_SCHEMA)
       const cleanPayload = serializeSignInPayload({
         ...payload,
-        userType: selectedUserType, // Include selected user type for verification
+        userType: selectedUserType, 
       });
-      console.log('Sending clean payload to network:', Object.keys(cleanPayload));
+      console.log('Sending clean payload to API:', Object.keys(cleanPayload));
 
-      // Call network function with schema-compliant data
-      const { user: firebaseUser, profile } = await loginUser(cleanPayload);
+      const { user: apiUser, profile } = await loginUser(cleanPayload);
 
-      // Serialize the response (filters against USER_SCHEMA)
-      const serializedUser = serializeUser(firebaseUser, profile);
+      const serializedUser = serializeUser(apiUser, profile);
       if (!serializedUser) {
-        throw new Error('Invalid user data received from network');
+        throw new Error('Invalid user data received from API');
       }
 
-      // CRITICAL: Verify that the user's stored account type matches the selected type
       if (serializedUser.userType !== selectedUserType) {
         console.error(`User type mismatch: stored=${serializedUser.userType}, selected=${selectedUserType}`);
         
-        // Sign out the user immediately since they authenticated but with wrong account type
         try {
           await logoutUser();
         } catch (logoutError) {
           console.error('Error signing out after user type mismatch:', logoutError);
         }
         
-        // Return specific error based on what they tried to login as
         const storedTypeLabel = serializedUser.userType === 'therapist' ? 'Therapist' : 'Visitor';
         const selectedTypeLabel = selectedUserType === 'therapist' ? 'Therapist' : 'Visitor';
         
@@ -126,9 +105,7 @@ export const signInWithEmail = createAsyncThunk(
       return rejectWithValue(error.message || 'Login failed');
     }
   });
-/**
- * Async thunk for user sign out
- */
+
 export const signOutUser = createAsyncThunk(
   'auth/signOutUser',
   async (_, { rejectWithValue }) => {
@@ -144,9 +121,6 @@ export const signOutUser = createAsyncThunk(
   }
 );
 
-/**
- * Async thunk for sending password reset email
- */
 export const sendResetEmail = createAsyncThunk(
   'auth/sendResetEmail',
   async (email, { rejectWithValue }) => {
@@ -167,26 +141,22 @@ export const sendResetEmail = createAsyncThunk(
   }
 );
 
-/**
- * Async thunk to start Firebase auth state listener
- * This should be called once when the app starts
- */
 export const startAuthListener = createAsyncThunk(
   'auth/startAuthListener',
   async (_, { dispatch }) => {
     try {
       console.log('Starting auth listener');
       
-      const unsubscribe = setupAuthStateListener((firebaseUser, profile) => {
-        if (!firebaseUser) {
+      const unsubscribe = setupAuthStateListener((apiUser, profile) => {
+        if (!apiUser) {
           console.log('No user from auth state listener');
           dispatch(authSlice.actions.logout());
           return;
         }
 
-        console.log('User detected from auth state listener:', firebaseUser.uid);
-        // Serialize and update user state (filters against USER_SCHEMA)
-        const serializedUser = serializeUser(firebaseUser, profile);
+        console.log('User detected from auth state listener:', apiUser.uid);
+       
+        const serializedUser = serializeUser(apiUser, profile);
         if (serializedUser) {
           console.log('User data serialized from listener:', Object.keys(serializedUser));
           dispatch(authSlice.actions.loginSuccess(serializedUser));
@@ -195,7 +165,6 @@ export const startAuthListener = createAsyncThunk(
         }
       });
 
-      // Return the unsubscribe function so it can be stored if needed
       return unsubscribe;
     } catch (error) {
       console.error('Error starting auth listener:', error);
@@ -204,14 +173,10 @@ export const startAuthListener = createAsyncThunk(
   }
 );
 
-/**
- * Auth slice definition
- */
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // UI state management reducers
     setSelectedUserType: (state, action) => {
       const { VALID_USER_TYPES } = require('../../serilizers/authSerilizer');
       
@@ -223,7 +188,6 @@ const authSlice = createSlice({
       }
     },
 
-    // Login form reducers - only update schema-defined fields
     setLoginEmail: (state, action) => {
       const allowedFields = getAllowedFields('LOGIN_FORM');
       if (allowedFields.includes('email')) {
@@ -243,7 +207,6 @@ const authSlice = createSlice({
       }
     },
 
-    // Sign up form reducers - only update schema-defined fields
     setSignUpField: (state, action) => {
       const { field, value } = action.payload;
       const allowedFields = getAllowedFields('SIGNUP_FORM');
@@ -273,12 +236,10 @@ const authSlice = createSlice({
       }
     },
 
-    // Bulk form update with schema filtering
     updateLoginForm: (state, action) => {
       const allowedFields = getAllowedFields('LOGIN_FORM');
       const updates = {};
       
-      // Filter incoming updates against LOGIN_FORM_SCHEMA
       Object.entries(action.payload).forEach(([key, value]) => {
         if (allowedFields.includes(key)) {
           updates[key] = value;
@@ -294,7 +255,6 @@ const authSlice = createSlice({
       const allowedFields = getAllowedFields('SIGNUP_FORM');
       const updates = {};
       
-      // Filter incoming updates against SIGNUP_FORM_SCHEMA
       Object.entries(action.payload).forEach(([key, value]) => {
         if (allowedFields.includes(key)) {
           updates[key] = value;
@@ -306,7 +266,6 @@ const authSlice = createSlice({
       state.signUpForm = { ...state.signUpForm, ...updates };
     },
 
-    // Loading and error state reducers
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
@@ -317,11 +276,9 @@ const authSlice = createSlice({
       state.error = null;
     },
 
-    // Authentication state reducers (used by async thunks and listeners)
     loginSuccess: (state, action) => {
       console.log('Login success reducer called');
       
-      // Validate that incoming user data conforms to USER_SCHEMA
       if (conformsToSchema(action.payload, 'USER')) {
         state.user = action.payload;
         state.isAuthenticated = true;
@@ -330,7 +287,6 @@ const authSlice = createSlice({
         console.log('User data conforms to USER_SCHEMA');
       } else {
         console.error('User data does not conform to USER_SCHEMA, re-serializing...');
-        // Try to re-serialize to ensure schema compliance
         const cleanUser = serializeUser(action.payload, {});
         if (cleanUser) {
           state.user = cleanUser;
@@ -347,7 +303,6 @@ const authSlice = createSlice({
     
     logout: (state) => {
       console.log('Logout reducer called');
-      // Reset to schema-compliant initial state
       const initialAuthState = createInitialAuthState();
       state.user = null;
       state.isAuthenticated = false;
@@ -369,7 +324,6 @@ const authSlice = createSlice({
       if (state.user) {
         console.log('Updating user profile:', action.payload);
         
-        // Filter profile update against USER_SCHEMA allowed fields
         const allowedFields = getAllowedFields('USER');
         const filteredUpdate = {};
         
@@ -386,9 +340,7 @@ const authSlice = createSlice({
       }
     },
 
-    // New reducer for schema validation
     validateCurrentState: (state) => {
-      // Validate that current state conforms to AUTH_STATE_SCHEMA
       const isValid = conformsToSchema(state, 'AUTH_STATE');
       if (!isValid) {
         console.warn('Current auth state does not conform to AUTH_STATE_SCHEMA');
@@ -399,7 +351,6 @@ const authSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      // Sign up cases
       .addCase(signUpWithEmail.pending, (state) => {
         console.log('signUpWithEmail.pending');
         state.loading = true;
@@ -407,11 +358,10 @@ const authSlice = createSlice({
       })
       .addCase(signUpWithEmail.fulfilled, (state, action) => {
         console.log('signUpWithEmail.fulfilled');
-        state.user = action.payload; // Already schema-compliant from serializer
+        state.user = action.payload; 
         state.isAuthenticated = true;
         state.loading = false;
         state.error = null;
-        // Reset form after successful registration to schema-compliant state
         state.signUpForm = createInitialAuthState().signUpForm;
       })
       .addCase(signUpWithEmail.rejected, (state, action) => {
@@ -420,7 +370,6 @@ const authSlice = createSlice({
         state.error = action.payload || 'Registration failed.';
       })
 
-      // Sign in cases
       .addCase(signInWithEmail.pending, (state) => {
         console.log('signInWithEmail.pending');
         state.loading = true;
@@ -428,11 +377,10 @@ const authSlice = createSlice({
       })
       .addCase(signInWithEmail.fulfilled, (state, action) => {
         console.log('signInWithEmail.fulfilled');
-        state.user = action.payload; // Already schema-compliant from serializer
+        state.user = action.payload; 
         state.isAuthenticated = true;
         state.loading = false;
         state.error = null;
-        // Reset form after successful login to schema-compliant state
         state.loginForm = createInitialAuthState().loginForm;
       })
       .addCase(signInWithEmail.rejected, (state, action) => {
@@ -441,7 +389,6 @@ const authSlice = createSlice({
         state.error = action.payload || 'Login failed.';
       })
 
-      // Sign out cases
       .addCase(signOutUser.pending, (state) => {
         console.log('signOutUser.pending');
         state.loading = true;
@@ -449,7 +396,6 @@ const authSlice = createSlice({
       })
       .addCase(signOutUser.fulfilled, (state) => {
         console.log('signOutUser.fulfilled');
-        // Reset to schema-compliant initial state
         const initialAuthState = createInitialAuthState();
         state.user = null;
         state.isAuthenticated = false;
@@ -482,7 +428,6 @@ const authSlice = createSlice({
         state.error = action.payload || 'Could not send reset email.';
       })
 
-      // Auth listener cases
       .addCase(startAuthListener.pending, (state) => {
         console.log('startAuthListener.pending');
         state.loading = true;
@@ -499,7 +444,7 @@ const authSlice = createSlice({
   },
 });
 
-// Selectors - all return schema-compliant data
+// Selectors
 export const selectUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectSelectedUserType = (state) => state.auth.selectedUserType;
@@ -508,24 +453,20 @@ export const selectSignUpForm = (state) => state.auth.signUpForm;
 export const selectAuthLoading = (state) => state.auth.loading;
 export const selectAuthError = (state) => state.auth.error;
 
-// Additional selectors for better state management
 export const selectUserType = (state) => state.auth.user?.userType;
 export const selectUserNickname = (state) => state.auth.user?.nickname;
 export const selectUserEmail = (state) => state.auth.user?.email;
 
-// Enhanced form validation selector using schema
 export const selectIsFormValid = (formType) => (state) => {
   const form = formType === 'login' ? state.auth.loginForm : state.auth.signUpForm;
   const validation = validateFormData(form, formType);
   return validation.isValid;
 };
 
-// New selectors for schema compliance
 export const selectUserProfile = (state) => {
   const user = state.auth.user;
   if (!user) return null;
   
-  // Extract only profile fields as defined in FIRESTORE_PROFILE_SCHEMA
   const allowedProfileFields = getAllowedFields('FIRESTORE_PROFILE');
   const profile = {};
   
@@ -544,7 +485,6 @@ export const selectFormValidationErrors = (formType) => (state) => {
   return validation.errors;
 };
 
-// Export actions
 export const {
   setSelectedUserType,
   setLoginEmail,

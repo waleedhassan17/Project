@@ -1,9 +1,4 @@
-// auth/authModels.js
 
-/**
- * Type definitions and schema validation for authentication system
- * This file defines the exact structure that should be used throughout the app
- */
 
 /**
  * @typedef {'visitor' | 'therapist'} UserType

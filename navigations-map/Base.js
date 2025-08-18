@@ -1,6 +1,6 @@
 import HomeScreen from "../screens/HomeScreen/homeScreen";
-import ShezlongLogin from "../screens/auth/SignIn";
-import ShezlongSignUp from "../screens/auth/SignUp";
+import ShezlongLogin from "../screens/AuthenticationScreens/SignIn";
+import ShezlongSignUp from "../screens/AuthenticationScreens/SignUp";
 
 export const BaseRouteNames = {
   Home: "Home",
