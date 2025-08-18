@@ -130,6 +130,93 @@ export const DEFAULTS = {
 };
 
 /**
+<<<<<<< HEAD
+=======
+ * Core User object representing authenticated user data stored in Redux
+ * @typedef {Object} User
+ * @property {string} uid
+ * @property {string|null} email
+ * @property {string|null} displayName
+ * @property {string|null} photoURL
+ * @property {string|null} phoneNumber
+ * @property {boolean} emailVerified
+ * @property {string} [nickname]
+ * @property {string} [phone]
+ * @property {string} [birthYear]
+ * @property {Gender} [gender]
+ * @property {UserType} [userType]
+ * @property {number} [createdAt]
+ * @property {number} [updatedAt]
+ */
+
+/**
+ * Firestore user profile (stored in DB)
+ * @typedef {Object} FirestoreUserProfile
+ * @property {string} [nickname]
+ * @property {string} [phone]
+ * @property {string} [birthYear]
+ * @property {Gender} [gender]
+ * @property {UserType} [userType]
+ * @property {number} [createdAt]
+ * @property {number} [updatedAt]
+ */
+
+/**
+ * Login form state
+ * @typedef {Object} LoginForm
+ * @property {string} email
+ * @property {string} password
+ * @property {boolean} showPassword
+ */
+
+/**
+ * Sign up form state
+ * @typedef {Object} SignUpForm
+ * @property {string} nickname
+ * @property {string} email
+ * @property {string} password
+ * @property {string} confirmPassword
+ * @property {string} phone
+ * @property {string} birthYear
+ * @property {Gender} gender
+ * @property {boolean} showPassword
+ * @property {boolean} showConfirmPassword
+ * @property {boolean} agreeToPrivacy
+ */
+
+/**
+ * Sign-up API payload
+ * @typedef {Object} SignUpPayload
+ * @property {string} email
+ * @property {string} password
+ * @property {string} nickname
+ * @property {string} phone
+ * @property {string} birthYear
+ * @property {Gender} gender
+ * @property {UserType} userType
+ */
+
+/**
+ * Sign-in API payload
+ * @typedef {Object} SignInPayload
+ * @property {string} email
+ * @property {string} password
+ */
+
+/**
+ * Redux auth state
+ * @typedef {Object} AuthState
+ * @property {User|null} user
+ * @property {boolean} isAuthenticated
+ * @property {UserType} selectedUserType
+ * @property {LoginForm} loginForm
+ * @property {SignUpForm} signUpForm
+ * @property {boolean} loading
+ * @property {string|null} error
+ */
+
+/**
+>>>>>>> e882e68 (Refactored folder structure)
  * Utility function to get allowed fields for a schema
  * @param {string} schemaName - Name of the schema
  * @returns {string[]} Array of allowed field names
@@ -191,7 +278,11 @@ export const getFieldType = (schemaName, fieldName) => {
  * Validates data against a schema
  * @param {Object} data - Data to validate
  * @param {string} schemaName - Name of the schema to validate against
+<<<<<<< HEAD
  * @returns {Object} Validation result with isValid and errors
+=======
+ * @returns {boolean} Whether data conforms to schema
+>>>>>>> e882e68 (Refactored folder structure)
  */
 export const conformsToSchema = (data, schemaName) => {
   const schema = {
